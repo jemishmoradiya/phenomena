@@ -10,6 +10,7 @@ import { createBloomPreviewDraw, createGalaxyPreviewDraw } from "./lib/landingPr
 
 const SPATIAL_SYSTEM_COUNT = 34;
 const SPATIAL_FAMILIES = ["Cosmos", "Quantum", "Fields", "Structures", "Living", "Fluid", "Mechanical", "Light", "Future"];
+const GITHUB_URL = "https://github.com/jemishmoradiya/phenomena";
 const HIGHLIGHTS = [
   { label: "Black Hole Engine", href: "/spatial.html?scene=blackhole" },
   { label: "Starship Launch", href: "/spatial.html?scene=starshiplaunch3d" },
@@ -113,6 +114,15 @@ export default function LandingApp() {
               <span className="size-1.5 rounded-full bg-zinc-400" />
               <span className="hidden sm:inline">CHOOSE A LAB</span>
             </span>
+            <a
+              href={GITHUB_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View source on GitHub"
+              className="control-button grid size-9 shrink-0 place-items-center rounded-full border border-[var(--ui-border)] text-[var(--ui-ink)] transition-colors duration-150 hover:border-[var(--ui-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ink)]"
+            >
+              <Icon name="github" className="size-4" />
+            </a>
           </div>
         </div>
       </header>
@@ -195,6 +205,42 @@ export default function LandingApp() {
         </div>
       </section>
 
+      <section className="border-t border-[var(--ui-border)]" style={{ contentVisibility: "auto", containIntrinsicSize: "500px" }}>
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:items-start">
+            <div>
+              <p className="text-[10px] font-semibold uppercase text-[var(--ui-muted)]">Built in the open</p>
+              <h2 className="mt-3 max-w-lg text-balance font-serif text-4xl sm:text-5xl">The source is public.</h2>
+            </div>
+            <div className="max-w-xl">
+              <p className="text-pretty text-sm leading-relaxed text-[var(--ui-muted)]">Every simulation, formula, and control in this lab lives in the open on GitHub, including the backlog of known rough edges still being worked through. The source is public for reading and reference — it's not under an open license, so reuse isn't granted without asking first.</p>
+              <div className="mt-6 overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-panel)]">
+                <pre className="overflow-x-auto p-4 text-[11px] leading-relaxed"><code>{`git clone ${GITHUB_URL}.git\ncd phenomena\nnpm install && npm run dev`}</code></pre>
+              </div>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <a
+                  href={GITHUB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="control-button flex min-h-10 items-center gap-2 rounded-full border border-[var(--ui-border)] bg-[var(--ui-panel)] px-4 text-[11px] font-semibold text-[var(--ui-ink)] transition-colors duration-150 hover:border-[var(--ui-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ink)]"
+                >
+                  <Icon name="github" className="size-3.5" />
+                  View on GitHub
+                </a>
+                <a
+                  href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="control-button flex min-h-10 items-center rounded-full border border-[var(--ui-border)] bg-[var(--ui-panel)] px-4 text-[11px] font-semibold text-[var(--ui-muted)] transition-colors duration-150 hover:border-[var(--ui-ink)] hover:text-[var(--ui-ink)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ink)]"
+                >
+                  Read CONTRIBUTING.md
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="border-t border-[var(--ui-border)] bg-[var(--ui-ink)] text-[var(--page-bg)]">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8">
           <div>
@@ -210,9 +256,14 @@ export default function LandingApp() {
       </section>
 
       <footer className="bg-[var(--ui-ink)] text-[var(--page-bg)]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-[var(--page-bg)]/15 px-4 py-5 text-[9px] opacity-55 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-[var(--page-bg)]/15 px-4 py-5 text-[9px] opacity-55 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
           <p>Phenomena · A particle laboratory</p>
           <p>Motion pauses off-screen · Reduced motion supported · Canvas fallback included</p>
+          <div className="flex items-center gap-4">
+            <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="control-button hover:opacity-80">GitHub</a>
+            <a href={`${GITHUB_URL}/issues`} target="_blank" rel="noopener noreferrer" className="control-button hover:opacity-80">Issues</a>
+            <a href={`${GITHUB_URL}/blob/main/CONTRIBUTING.md`} target="_blank" rel="noopener noreferrer" className="control-button hover:opacity-80">Contributing</a>
+          </div>
         </div>
       </footer>
     </main>
