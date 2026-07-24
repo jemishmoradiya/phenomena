@@ -88,6 +88,10 @@ button:disabled,
   background: var(--ui-ink);
 }
 
+.control-button {
+  transition: transform 150ms ease-out;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .control-button:hover {
     transform: translateY(-1px);

@@ -154,17 +154,33 @@ export default function LandingApp() {
       </section>
 
       <section className="border-b border-[var(--ui-border)]">
-        <div className="mx-auto grid gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[10rem_minmax(0,1fr)] lg:items-start lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }}
+          whileInView={{ opacity: 1, transform: "translateY(0px)" }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="mx-auto grid gap-5 px-4 py-5 sm:px-6 lg:grid-cols-[10rem_minmax(0,1fr)] lg:items-start lg:px-8"
+        >
           <div>
             <p className="font-mono text-[10px] font-semibold uppercase text-[var(--ui-muted)]">A few to start with</p>
             <p className="mt-1 font-mono text-xs font-semibold tabular-nums">{COLLECTIONS.length + SPATIAL_FAMILIES.length} families</p>
           </div>
           <div className="flex flex-wrap gap-1.5">
-            {HIGHLIGHTS.map((item) => (
-              <a key={item.label} href={item.href} className="control-button rounded-full border border-[var(--ui-border)] bg-[var(--ui-panel)] px-2.5 py-1.5 font-mono text-[9px] font-semibold text-[var(--ui-muted)] transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]">{item.label}</a>
+            {HIGHLIGHTS.map((item, index) => (
+              <motion.a
+                key={item.label}
+                href={item.href}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.16, delay: shouldReduceMotion ? 0 : index * 0.03, ease: "easeOut" }}
+                className="control-button rounded-full border border-[var(--ui-border)] bg-[var(--ui-panel)] px-2.5 py-1.5 font-mono text-[9px] font-semibold text-[var(--ui-muted)] transition-colors duration-150 hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              >
+                {item.label}
+              </motion.a>
             ))}
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="border-b border-[var(--ui-border)] bg-[var(--ui-panel)]/45" style={{ contentVisibility: "auto", containIntrinsicSize: "700px" }}>
@@ -217,7 +233,13 @@ export default function LandingApp() {
       </section>
 
       <section className="border-b border-[var(--ui-border)]" style={{ contentVisibility: "auto", containIntrinsicSize: "500px" }}>
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }}
+          whileInView={{ opacity: 1, transform: "translateY(0px)" }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+        >
           <div className="grid gap-8 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)] lg:items-start">
             <div>
               <p className="font-mono text-[10px] font-semibold uppercase text-[var(--ui-muted)]">Built in the open</p>
@@ -254,11 +276,17 @@ export default function LandingApp() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <section className="border-b border-[var(--ui-border)] bg-[var(--accent-deep)]">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }}
+          whileInView={{ opacity: 1, transform: "translateY(0px)" }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8"
+        >
           <div>
             <p className="font-mono text-[10px] font-semibold uppercase text-[var(--ui-ink)] opacity-70">Ready when you are</p>
             <h2 className="mt-3 max-w-2xl text-balance font-sans text-4xl font-extrabold tracking-tight text-[var(--ui-ink)] sm:text-5xl">Begin with a single point.</h2>
@@ -268,7 +296,7 @@ export default function LandingApp() {
             <a href="/gallery.html" className="control-button flex min-h-12 min-w-44 items-center justify-between rounded-full bg-[var(--ui-ink)] px-5 text-xs font-semibold text-[var(--accent-deep)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ui-ink)]">Explore 2D<Icon name="gallery" className="size-4" /></a>
             <a href="/spatial.html" className="control-button flex min-h-12 min-w-44 items-center justify-between rounded-full border border-[var(--ui-ink)]/40 px-5 text-xs font-semibold text-[var(--ui-ink)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ui-ink)]">Enter 3D<Icon name="spatial" className="size-4" /></a>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       <footer>
