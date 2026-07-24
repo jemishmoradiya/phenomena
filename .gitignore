@@ -1,0 +1,10 @@
+node_modules
+dist
+.DS_Store
+.claude/settings.local.json
+/plans/
+.vercel
+.env
+.env.*
+.vscode/
+.idea/

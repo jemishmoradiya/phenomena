@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Avenir Next", Avenir, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, ui-serif, Georgia, serif;
+}
+
+:root {
+  font-family: "Avenir Next", Avenir, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --page-bg: #f1efe8;
+  --ui-panel: #fbfaf6;
+  --ui-ink: #181614;
+  --ui-muted: #6f675f;
+  --ui-border: #c8c1b8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+label[for],
+select,
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+[role="tab"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.studio-slider {
+  appearance: none;
+  height: 20px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.studio-slider:disabled {
+  cursor: not-allowed;
+}
+
+.studio-slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--ui-border);
+}
+
+.studio-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -4.5px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ui-ink);
+}
+
+.studio-slider::-moz-range-track {
+  height: 1px;
+  background: var(--ui-border);
+}
+
+.studio-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ui-ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .palette-button:hover {
+    transform: translateY(-2px);
+  }
+
+  .lab-card:hover .lab-card-arrow {
+    transform: translateX(4px);
+  }
+
+  .lab-card:hover .particle-preview-plane--2d {
+    transform: translateX(4px);
+  }
+
+  .lab-card:hover .particle-preview-plane--3d {
+    transform: scale(1.015);
+  }
+}
+
+.control-button:active {
+  transform: scale(0.97);
+}
+
+.palette-button:active {
+  transform: scale(0.95);
+}
+
+.system-list {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-border) transparent;
+}
+
+.system-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.system-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.system-list::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--ui-border);
+  background-clip: padding-box;
+}
+
+.stage-shell:fullscreen,
+.stage-shell:-webkit-full-screen {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  border: 0;
+}
+
+.spatial-stage:fullscreen,
+.spatial-stage:-webkit-full-screen {
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100dvh;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
