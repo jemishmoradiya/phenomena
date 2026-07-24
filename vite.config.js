@@ -10,6 +10,7 @@ export default defineConfig({
       input: {
         main: resolve(import.meta.dirname, "index.html"),
         gallery: resolve(import.meta.dirname, "gallery.html"),
+        origami: resolve(import.meta.dirname, "origami.html"),
         spatial: resolve(import.meta.dirname, "spatial.html"),
       },
     },
