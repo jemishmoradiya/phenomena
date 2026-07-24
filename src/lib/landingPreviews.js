@@ -27,6 +27,39 @@ export function createBloomPreviewDraw(inkColor) {
   };
 }
 
+// Full-bleed ambient field for the hero background: particles seeded across the
+// entire canvas (not confined to a centered square like the mode previews above)
+// so it reads as an instrument-panel starfield behind the headline, at any aspect ratio.
+export function createFieldPreviewDraw(inkColor, accentColor, count = 170) {
+  const seeds = new Float32Array(count * 4);
+  for (let index = 0; index < count; index += 1) {
+    const offset = index * 4;
+    seeds[offset] = seeded(index, 21);
+    seeds[offset + 1] = seeded(index, 22);
+    seeds[offset + 2] = seeded(index, 23);
+    seeds[offset + 3] = seeded(index, 24);
+  }
+
+  return (context, width, height, time) => {
+    for (let index = 0; index < count; index += 1) {
+      const offset = index * 4;
+      const baseX = seeds[offset] * width;
+      const baseY = seeds[offset + 1] * height;
+      const depth = seeds[offset + 3];
+      const orbitRadius = 8 + seeds[offset + 2] * 34;
+      const angle = seeds[offset + 2] * Math.PI * 2 + time * (0.08 + depth * 0.14);
+      const x = baseX + Math.cos(angle) * orbitRadius;
+      const y = baseY + Math.sin(angle) * orbitRadius * 0.6;
+      context.fillStyle = index % 6 === 0 ? accentColor : inkColor;
+      context.globalAlpha = 0.15 + depth * 0.5;
+      context.beginPath();
+      context.arc(x, y, 0.8 + depth * 1.7, 0, Math.PI * 2);
+      context.fill();
+    }
+    context.globalAlpha = 1;
+  };
+}
+
 export function createGalaxyPreviewDraw(inkColor) {
   const seeds = new Float32Array(GALAXY_PARTICLE_COUNT * 3);
   const positions = new Float32Array(GALAXY_PARTICLE_COUNT * 3);
