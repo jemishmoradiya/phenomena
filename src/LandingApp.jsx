@@ -8,9 +8,10 @@ import LivePreviewCanvas from "./components/LivePreviewCanvas";
 import { Mark } from "./components/StudioControls";
 import { Icon } from "./components/StudioIcons";
 import { COLLECTIONS, MODES, PALETTES } from "./config/studio";
-import { createBloomPreviewDraw, createFieldPreviewDraw, createGalaxyPreviewDraw } from "./lib/landingPreviews";
+import { createBloomPreviewDraw, createFieldPreviewDraw, createGalaxyPreviewDraw, createOrigamiPreviewDraw } from "./lib/landingPreviews";
 
 const SPATIAL_SYSTEM_COUNT = 36;
+const ORIGAMI_FORM_COUNT = 9;
 const SPATIAL_FAMILIES = ["Cosmos", "Quantum", "Fields", "Structures", "Living", "Fluid", "Mechanical", "Light", "Future"];
 const GITHUB_URL = "https://github.com/jemishmoradiya/phenomena";
 const LANDING_THEME = { background: "#07111f", panel: "#0e1c30", ink: "#edf7ff", muted: "#8da7c2", border: "#1c3350", accent: "#77c8ff", accentDeep: "#316cff" };
@@ -25,11 +26,13 @@ const HIGHLIGHTS = [
   { label: "Wave Interference", href: "/gallery.html?scene=interference" },
 ];
 
-function ParticlePreview({ spatial = false }) {
-  const palette = PALETTES.find((item) => item.id === (spatial ? "obsidian" : "porcelain"));
+function ParticlePreview({ kind = "gallery" }) {
+  const spatial = kind === "spatial";
+  const origami = kind === "origami";
+  const palette = PALETTES.find((item) => item.id === (spatial ? "obsidian" : origami ? "solar" : "porcelain"));
   const draw = useMemo(
-    () => (spatial ? createGalaxyPreviewDraw(palette.stageInk) : createBloomPreviewDraw(palette.stageInk)),
-    [spatial, palette.stageInk],
+    () => (spatial ? createGalaxyPreviewDraw(palette.stageInk) : origami ? createOrigamiPreviewDraw(palette.stageInk, palette.connection) : createBloomPreviewDraw(palette.stageInk)),
+    [origami, spatial, palette.connection, palette.stageInk],
   );
 
   return (
@@ -38,24 +41,24 @@ function ParticlePreview({ spatial = false }) {
       style={{ backgroundColor: palette.background, color: palette.stageInk }}
       aria-hidden="true"
     >
-      <div className={`particle-preview-plane particle-preview-plane--${spatial ? "3d" : "2d"} absolute inset-0 transition-transform duration-150`}>
+      <div className={`particle-preview-plane particle-preview-plane--${spatial || origami ? "3d" : "2d"} absolute inset-0 transition-transform duration-150`}>
         <LivePreviewCanvas className="block size-full" draw={draw} />
       </div>
       <div className="absolute inset-x-5 bottom-4 flex items-center justify-between font-mono text-[9px] font-semibold uppercase opacity-60">
-        <span>{spatial ? "Depth · Orbit · Zoom" : "Flow · Force · Time"}</span>
-        <span className="tabular-nums">{spatial ? "03 AXES" : "02 AXES"}</span>
+        <span>{origami ? "Fold · Orbit · Study" : spatial ? "Depth · Orbit · Zoom" : "Flow · Force · Time"}</span>
+        <span className="tabular-nums">{origami ? "PAPER 3D" : spatial ? "03 AXES" : "02 AXES"}</span>
       </div>
     </div>
   );
 }
 
-function LabCard({ description, href, label, meta, spatial = false }) {
+function LabCard({ description, href, icon = "gallery", kind = "gallery", label, meta }) {
   return (
     <a
       href={href}
       className="lab-card control-button group block w-full min-w-0 overflow-hidden rounded-3xl border border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-ink)] shadow-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--ui-ink)]"
     >
-      <ParticlePreview spatial={spatial} />
+      <ParticlePreview kind={kind} />
       <div className="flex items-end justify-between gap-6 p-5 sm:p-6">
         <div>
           <p className="font-mono text-[10px] font-semibold uppercase text-[var(--ui-muted)]">{meta}</p>
@@ -63,7 +66,7 @@ function LabCard({ description, href, label, meta, spatial = false }) {
           <p className="mt-2 max-w-sm text-pretty text-xs leading-relaxed text-[var(--ui-muted)]">{description}</p>
         </div>
         <span className="lab-card-arrow grid size-11 shrink-0 place-items-center rounded-full bg-[var(--accent-deep)] text-[var(--ui-ink)] transition-transform duration-150" aria-hidden="true">
-          <Icon name={spatial ? "spatial" : "gallery"} className="size-4" />
+          <Icon name={icon} className="size-4" />
         </span>
       </div>
     </a>
@@ -140,16 +143,19 @@ export default function LandingApp() {
             <h1 className="text-balance font-sans text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">Everything is made of particles.</h1>
             <p className="mt-6 max-w-2xl text-pretty text-sm leading-relaxed text-[var(--ui-muted)] sm:text-base">Observe cosmic systems, fluid motion, living structures, light, mathematics, and imagined futures—built live from points in motion.</p>
             <p className="mt-5 font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--ui-muted)]">
-              {MODES.length + SPATIAL_SYSTEM_COUNT} systems · {COLLECTIONS.length + 9} families · {PALETTES.length} palettes
+              {MODES.length + SPATIAL_SYSTEM_COUNT + ORIGAMI_FORM_COUNT} experiences · {COLLECTIONS.length + 10} families · {PALETTES.length} palettes
             </p>
           </motion.div>
 
-          <div className="mt-12 grid gap-4 lg:mt-16 lg:grid-cols-2">
+          <div className="mt-12 grid gap-4 lg:mt-16 lg:grid-cols-3">
             <motion.div initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }} animate={{ opacity: 1, transform: "translateY(0px)" }} transition={{ duration: 0.18, delay: shouldReduceMotion ? 0 : 0.12, ease: "easeOut" }}>
               <LabCard href="/gallery.html" label="Explore in 2D" meta={`${MODES.length} systems · Canvas`} description="Direct, graphic particle studies shaped by movement, force, rhythm, and pointer interaction." />
             </motion.div>
             <motion.div initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }} animate={{ opacity: 1, transform: "translateY(0px)" }} transition={{ duration: 0.18, delay: shouldReduceMotion ? 0 : 0.17, ease: "easeOut" }}>
-              <LabCard href="/spatial.html" label="Enter the 3D Lab" meta={`${SPATIAL_SYSTEM_COUNT} systems · WebGL`} description="Spatial particle worlds with orbit, depth, camera movement, up to 12,000 particles, and an automatic Canvas fallback." spatial />
+              <LabCard href="/spatial.html" icon="spatial" kind="spatial" label="Enter the 3D Lab" meta={`${SPATIAL_SYSTEM_COUNT} systems · WebGL`} description="Spatial particle worlds with orbit, depth, camera movement, up to 12,000 particles, and an automatic Canvas fallback." />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }} animate={{ opacity: 1, transform: "translateY(0px)" }} transition={{ duration: 0.18, delay: shouldReduceMotion ? 0 : 0.22, ease: "easeOut" }}>
+              <LabCard href="/origami.html" icon="origami" kind="origami" label="Origami Playground" meta={`${ORIGAMI_FORM_COUNT} forms · Interactive 3D`} description="Rotate, zoom, fold, and unfold Japanese paper art to reveal the structure inside each form." />
             </motion.div>
           </div>
         </div>

@@ -104,3 +104,34 @@ export function createGalaxyPreviewDraw(inkColor) {
     context.globalAlpha = 1;
   };
 }
+
+export function createOrigamiPreviewDraw(inkColor, accentColor) {
+  return (context, width, height) => {
+    const size = Math.min(width, height);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const drawFacet = (points, fill, alpha = 1) => {
+      context.fillStyle = fill;
+      context.globalAlpha = alpha;
+      context.beginPath();
+      points.forEach(([x, y], index) => {
+        const px = centerX + x * size;
+        const py = centerY + y * size;
+        if (index === 0) context.moveTo(px, py);
+        else context.lineTo(px, py);
+      });
+      context.closePath();
+      context.fill();
+    };
+
+    drawFacet([[-0.03, -0.02], [-0.7, -0.38], [-0.43, 0.08]], accentColor);
+    drawFacet([[-0.03, -0.02], [-0.43, 0.08], [-0.18, 0.2]], inkColor, 0.72);
+    drawFacet([[0.02, -0.02], [0.68, -0.36], [0.44, 0.08]], "#f8eee0");
+    drawFacet([[0.02, -0.02], [0.44, 0.08], [0.19, 0.2]], inkColor, 0.48);
+    drawFacet([[-0.19, 0.2], [0.19, 0.2], [0, -0.15]], accentColor, 0.82);
+    drawFacet([[0.05, -0.06], [0.22, -0.47], [0.31, -0.53], [0.18, 0.03]], "#f8eee0");
+    drawFacet([[0.28, -0.5], [0.38, -0.54], [0.31, -0.43]], accentColor);
+    drawFacet([[-0.05, 0.16], [-0.34, 0.43], [-0.16, 0.15]], inkColor, 0.62);
+    context.globalAlpha = 1;
+  };
+}
