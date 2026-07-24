@@ -14,7 +14,7 @@ There is no test runner or linter configured in this project. Treat `npm run bui
 
 This is a React + Vite app ("Phenomena") that renders a gallery of 84 generative particle/physics animations ("modes") on canvas, with a control panel for tuning shared parameters (speed, density, palette, interaction, quality, etc).
 
-The project is a Vite multi-page app. `index.html` loads the 2D gallery through `src/main.jsx`; `spatial.html` loads the separate Three.js particle lab through `src/spatial-main.jsx`. The 3D page owns its 34-scene, nine-family UI in `src/SpatialApp.jsx` and its imperative WebGL renderer in `src/simulations/ThreeParticleLab.jsx`, keeping Three.js out of the main gallery entry.
+The project is a Vite multi-page app. `index.html` loads the 2D gallery through `src/main.jsx`; `spatial.html` loads the separate Three.js particle lab through `src/spatial-main.jsx`. The 3D page owns its 36-scene, nine-family UI in `src/SpatialApp.jsx` and its imperative WebGL renderer in `src/simulations/ThreeParticleLab.jsx`, keeping Three.js out of the main gallery entry.
 
 ### Two families of simulations
 

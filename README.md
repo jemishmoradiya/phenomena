@@ -2,7 +2,7 @@
 
 An interactive gallery of 84 generative particle and physics simulations — spanning thought, cosmic, living, physical, mathematical, mechanical, acoustic, fluid, optical, chemical, atmospheric, earth, quantum, and future systems — rendered on canvas, with a control panel for tuning speed, density, palette, and pointer interaction live.
 
-A separate 3D Lab adds 34 Three.js particle scenes across Cosmos, Quantum, Fields, Structures, Living, Fluid, Mechanical, Light, and Future, with drag-to-orbit, drag-to-pan, zoom, fullscreen, density, speed, point-size, and palette controls.
+A separate 3D Lab adds 36 Three.js particle scenes across Cosmos, Quantum, Fields, Structures, Living, Fluid, Mechanical, Light, and Future, with drag-to-orbit, drag-to-pan, zoom, fullscreen, density, speed, point-size, and palette controls.
 
 <p align="center">
   <img src="docs/screenshots/gallery-2d.jpg" alt="2D gallery — Bloom mode" width="49%" />
@@ -33,7 +33,7 @@ This is a Vite multi-page app with three entry points:
 | --- | --- | --- |
 | `/` | `src/landing-main.jsx` → `LandingApp.jsx` | Landing page with a 2D/3D lab picker |
 | `/gallery.html` | `src/main.jsx` → `App.jsx` | The 84-mode 2D particle gallery |
-| `/spatial.html` | `src/spatial-main.jsx` → `SpatialApp.jsx` | The 34-scene 3D particle lab |
+| `/spatial.html` | `src/spatial-main.jsx` → `SpatialApp.jsx` | The 36-scene 3D particle lab |
 
 ## Project structure
 
