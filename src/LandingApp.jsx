@@ -10,13 +10,15 @@ import { Icon } from "./components/StudioIcons";
 import { COLLECTIONS, MODES, PALETTES } from "./config/studio";
 import { createBloomPreviewDraw, createFieldPreviewDraw, createGalaxyPreviewDraw } from "./lib/landingPreviews";
 
-const SPATIAL_SYSTEM_COUNT = 34;
+const SPATIAL_SYSTEM_COUNT = 36;
 const SPATIAL_FAMILIES = ["Cosmos", "Quantum", "Fields", "Structures", "Living", "Fluid", "Mechanical", "Light", "Future"];
 const GITHUB_URL = "https://github.com/jemishmoradiya/phenomena";
 const LANDING_THEME = { background: "#07111f", panel: "#0e1c30", ink: "#edf7ff", muted: "#8da7c2", border: "#1c3350", accent: "#77c8ff", accentDeep: "#316cff" };
 const HIGHLIGHTS = [
   { label: "Black Hole Engine", href: "/spatial.html?scene=blackhole" },
   { label: "Starship Launch", href: "/spatial.html?scene=starshiplaunch3d" },
+  { label: "Meteor Shower", href: "/spatial.html?scene=meteor3d" },
+  { label: "Takeoff & Landing", href: "/spatial.html?scene=flightcycle3d" },
   { label: "Möbius Loop", href: "/gallery.html?scene=mobius" },
   { label: "Strange Attractor", href: "/gallery.html?scene=attractor" },
   { label: "Cymatics", href: "/gallery.html?scene=cymatics" },
@@ -147,7 +149,7 @@ export default function LandingApp() {
               <LabCard href="/gallery.html" label="Explore in 2D" meta={`${MODES.length} systems · Canvas`} description="Direct, graphic particle studies shaped by movement, force, rhythm, and pointer interaction." />
             </motion.div>
             <motion.div initial={{ opacity: 0, transform: shouldReduceMotion ? "translateY(0px)" : "translateY(8px)" }} animate={{ opacity: 1, transform: "translateY(0px)" }} transition={{ duration: 0.18, delay: shouldReduceMotion ? 0 : 0.17, ease: "easeOut" }}>
-              <LabCard href="/spatial.html" label="Enter the 3D Lab" meta={`${SPATIAL_SYSTEM_COUNT} systems · WebGL`} description="Spatial particle worlds with orbit, depth, camera movement, and an automatic Canvas fallback." spatial />
+              <LabCard href="/spatial.html" label="Enter the 3D Lab" meta={`${SPATIAL_SYSTEM_COUNT} systems · WebGL`} description="Spatial particle worlds with orbit, depth, camera movement, up to 12,000 particles, and an automatic Canvas fallback." spatial />
             </motion.div>
           </div>
         </div>

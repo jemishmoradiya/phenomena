@@ -1,5 +1,5 @@
 // Top-level app shell for the 3D particle lab, mounted at /spatial.html (src/spatial-main.jsx).
-// Owns the 34-scene, nine-family UI and passes settings down to the imperative
+// Owns the 36-scene, nine-family UI and passes settings down to the imperative
 // WebGL renderer in simulations/ThreeParticleLab.jsx, which is lazy-loaded so
 // Three.js stays out of the main 2D gallery bundle.
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
@@ -29,6 +29,7 @@ const SPATIAL_MODES = [
   { id: "stellar3d", group: "cosmos", label: "Stellar Neighborhood", note: "nearby particle stars suspended through a deep local star field" },
   { id: "spacestation3d", group: "cosmos", label: "Space Station", note: "a modular orbital outpost receiving a particle-built docking craft" },
   { id: "starshiplaunch3d", group: "cosmos", label: "Starship Launch", note: "liftoff, exhaust, stage separation, and a returning particle booster" },
+  { id: "meteor3d", group: "cosmos", label: "Meteor Shower", note: "surface impacts burst outward and topple particle towers across a small Earth" },
   { id: "quantum", group: "quantum", label: "Quantum Cloud", note: "probability lobes occupying a rotating spatial volume" },
   { id: "entangled", group: "quantum", label: "Entangled Pairs", note: "mirrored particles preserving one correlated spatial state" },
   { id: "wavelattice", group: "quantum", label: "Wave Lattice", note: "a three-dimensional field carrying a coherent travelling wave" },
@@ -47,6 +48,7 @@ const SPATIAL_MODES = [
   { id: "clockwork3d", group: "mechanical", label: "Clockwork Array", note: "interlocked particle gears preserving coordinated timing" },
   { id: "bridge3d", group: "mechanical", label: "Bridge Tension", note: "decks, towers, and particle cables balancing spatial load" },
   { id: "orchestra3d", group: "mechanical", label: "Orchestra Field", note: "instrument sections pulsing through a dimensional arrangement" },
+  { id: "flightcycle3d", group: "mechanical", label: "Takeoff & Landing", note: "one aircraft departs, returns on final, flares, touches down, and exits the runway" },
   { id: "photonlens3d", group: "light", label: "Photon Lens", note: "volumetric particle rays converging through a precise focus" },
   { id: "doubleslit3d", group: "light", label: "Double Slit Volume", note: "particle paths expanding into a spatial interference field" },
   { id: "caustic3d", group: "light", label: "Caustic Volume", note: "layered photon sheets folding into concentrated surfaces" },
@@ -69,6 +71,11 @@ const ZOOM_PRESETS = [
   { label: "Wide", value: 0.4 },
   { label: "Default", value: 1 },
   { label: "Close", value: 3 },
+];
+const PARTICLE_PRESETS = [
+  { label: "Light", value: 2000 },
+  { label: "Dense", value: 6000 },
+  { label: "Ultra", value: 12000 },
 ];
 const SPATIAL_STORAGE_KEY = "phenomena:3d:v1";
 const SPATIAL_MODE_IDS = new Set(SPATIAL_MODES.map((item) => item.id));
@@ -199,7 +206,23 @@ function SpatialTuningPanel({ onRandomize, onReset, palette, resetView, setPalet
         <SectionLabel number="02">Dynamics</SectionLabel>
         <div className="grid gap-2">
           <Slider label="Speed" value={settings.speed} min="0.25" max="2" step="0.05" display={`${settings.speed.toFixed(2)}×`} onChange={(value) => updateSetting("speed", value)} />
-          <Slider label="Particles" value={settings.density} min="800" max="4000" step="200" display={settings.density.toLocaleString()} onChange={(value) => updateSetting("density", value)} />
+          <Slider label="Particles" value={settings.density} min="800" max="12000" step="200" display={settings.density.toLocaleString()} onChange={(value) => updateSetting("density", value)} />
+          <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Particle density presets">
+            {PARTICLE_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => updateSetting("density", preset.value)}
+                className={cn(
+                  "control-button rounded-lg border px-2 py-2 text-[9px] font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ui-ink)]",
+                  settings.density === preset.value ? "border-[var(--ui-ink)] bg-[var(--ui-ink)] text-[var(--page-bg)]" : "border-[var(--ui-border)] text-[var(--ui-muted)]",
+                )}
+                aria-pressed={settings.density === preset.value}
+              >
+                {preset.label} · {preset.value / 1000}K
+              </button>
+            ))}
+          </div>
           <Slider label="Particle size" value={settings.pointSize} min="0.65" max="2.2" step="0.05" display={`${settings.pointSize.toFixed(2)}×`} onChange={(value) => updateSetting("pointSize", value)} />
         </div>
       </div>

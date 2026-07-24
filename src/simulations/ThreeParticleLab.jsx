@@ -1,4 +1,4 @@
-// Imperative WebGL renderer for the 3D lab's 34 scenes (spatial.html / SpatialApp.jsx).
+// Imperative WebGL renderer for the 3D lab's 36 scenes (spatial.html / SpatialApp.jsx).
 // Each scene has a writeXPosition() function (mostly in spatialFormulas.js, some
 // inline below) that computes a per-particle 3D position each frame; this component
 // owns the Three.js scene/camera/points setup, orbit/pan/zoom pointer controls, and
@@ -563,6 +563,400 @@ function writeStarshipLaunchPosition(target, offset, index, time, seeds, count) 
   target[offset + 2] = Math.sin(phi) * Math.sin(theta) * radius;
 }
 
+const METEOR_GLOBE_RADIUS = 1.05;
+const METEOR_DIRECTION = { x: -0.5, y: -0.7212, z: -0.4794 };
+const METEOR_COUNT = 16;
+const METEOR_IMPACT_TIME = 3.65;
+
+function getMeteorBuilding(buildingId) {
+  const theta = seeded(buildingId, 61) * TAU;
+  const phi = Math.acos(seeded(buildingId, 62) * 2 - 1);
+  const normal = {
+    x: Math.sin(phi) * Math.cos(theta),
+    y: Math.cos(phi),
+    z: Math.sin(phi) * Math.sin(theta),
+  };
+  return {
+    height: 0.22 + seeded(buildingId, 63) * 0.5,
+    normal,
+    width: 0.09 + seeded(buildingId, 64) * 0.09,
+  };
+}
+
+function getMeteorTargetBuilding(meteorId) {
+  if (meteorId >= 12) return -1;
+  const start = (meteorId * 7) % 30;
+  for (let step = 0; step < 30; step += 1) {
+    const buildingId = (start + step) % 30;
+    const { normal } = getMeteorBuilding(buildingId);
+    const facing = normal.x * METEOR_DIRECTION.x + normal.y * METEOR_DIRECTION.y + normal.z * METEOR_DIRECTION.z;
+    if (facing < -0.18) return buildingId;
+  }
+  return -1;
+}
+
+function getMeteorImpact(meteorId) {
+  const buildingId = getMeteorTargetBuilding(meteorId);
+  if (buildingId >= 0) {
+    const building = getMeteorBuilding(buildingId);
+    return {
+      buildingId,
+      normal: building.normal,
+      radius: METEOR_GLOBE_RADIUS + building.height,
+    };
+  }
+
+  const theta = seeded(meteorId, 51) * TAU;
+  const phi = Math.acos(seeded(meteorId, 52) * 2 - 1);
+  let x = Math.sin(phi) * Math.cos(theta);
+  let y = Math.cos(phi);
+  let z = Math.sin(phi) * Math.sin(theta);
+  if (x * METEOR_DIRECTION.x + y * METEOR_DIRECTION.y + z * METEOR_DIRECTION.z > -0.08) {
+    x = -x;
+    y = -y;
+    z = -z;
+  }
+  return {
+    buildingId: -1,
+    normal: { x, y, z },
+    radius: METEOR_GLOBE_RADIUS,
+  };
+}
+
+function getMeteorCycle(meteorId, time) {
+  const duration = 5.65 + seeded(meteorId, 57) * 0.7;
+  return (time + seeded(meteorId, 54) * duration) % duration;
+}
+
+function getMeteorTangentFrame(normal) {
+  const planar = Math.hypot(normal.x, normal.z);
+  const tangent = planar > 0.1
+    ? { x: -normal.z / planar, y: 0, z: normal.x / planar }
+    : { x: 1, y: 0, z: 0 };
+  return {
+    tangent,
+    bitangent: {
+      x: normal.y * tangent.z,
+      y: normal.z * tangent.x - normal.x * tangent.z,
+      z: -normal.y * tangent.x,
+    },
+  };
+}
+
+// A meteor shower over a small particle Earth. Meteors collide with either the
+// terrain or an exposed tower, burst outward at impact, and topple struck towers.
+function writeMeteorShowerPosition(target, offset, index, time, seeds, count) {
+  const slice = index % 10;
+
+  if (slice < 2) {
+    // Surrounding star shell, turning almost imperceptibly.
+    const theta = seeds[offset] * TAU + time * 0.012;
+    const phi = Math.acos(seeds[offset + 1] * 2 - 1);
+    const radius = 3.6 + seeds[offset + 2] * 0.8;
+    target[offset] = Math.sin(phi) * Math.cos(theta) * radius;
+    target[offset + 1] = Math.cos(phi) * radius;
+    target[offset + 2] = Math.sin(phi) * Math.sin(theta) * radius;
+    return;
+  }
+
+  if (slice < 5) {
+    // The planet itself: a thin particle crust.
+    const theta = seeds[offset] * TAU;
+    const phi = Math.acos(seeds[offset + 1] * 2 - 1);
+    const radius = METEOR_GLOBE_RADIUS - 0.04 + seeds[offset + 2] * 0.06;
+    target[offset] = Math.sin(phi) * Math.cos(theta) * radius;
+    target[offset + 1] = Math.cos(phi) * radius;
+    target[offset + 2] = Math.sin(phi) * Math.sin(theta) * radius;
+    return;
+  }
+
+  if (slice < 7) {
+    // Towers rising radially outward from the globe on every side.
+    const buildingId = Math.floor(index / 10) % 30;
+    const building = getMeteorBuilding(buildingId);
+    const { normal } = building;
+    const { bitangent, tangent } = getMeteorTangentFrame(normal);
+    let collapse = 0;
+    let impactDirection = tangent;
+
+    for (let meteorId = 0; meteorId < 12; meteorId += 1) {
+      const impact = getMeteorImpact(meteorId);
+      if (impact.buildingId !== buildingId) continue;
+      const impactAge = getMeteorCycle(meteorId, time) - METEOR_IMPACT_TIME;
+      if (impactAge < 0) continue;
+      const progress = clamp01(impactAge / 0.78);
+      const eased = progress * progress * (3 - 2 * progress);
+      if (eased > collapse) {
+        collapse = eased;
+        const dot = METEOR_DIRECTION.x * normal.x + METEOR_DIRECTION.y * normal.y + METEOR_DIRECTION.z * normal.z;
+        const fallX = METEOR_DIRECTION.x - normal.x * dot;
+        const fallY = METEOR_DIRECTION.y - normal.y * dot;
+        const fallZ = METEOR_DIRECTION.z - normal.z * dot;
+        const fallLength = Math.hypot(fallX, fallY, fallZ) || 1;
+        impactDirection = { x: fallX / fallLength, y: fallY / fallLength, z: fallZ / fallLength };
+      }
+    }
+
+    // Rotate the tower around its foundation, then loosen the upper floors into
+    // debris. Keeping the radial component positive prevents pieces entering Earth.
+    const localHeight = seeds[offset + 1] * building.height;
+    const fallAngle = collapse * 1.38;
+    const radialHeight = localHeight * Math.cos(fallAngle);
+    const lateralFall = localHeight * Math.sin(fallAngle);
+    const breakup = clamp01((collapse - 0.72) / 0.28) * seeds[offset + 1];
+    const debrisSide = (seeds[offset] - 0.5) * breakup * 0.18;
+    const debrisLift = seeds[offset + 2] * breakup * 0.08;
+    const side = (seeds[offset] - 0.5) * building.width;
+    const side2 = (seeds[offset + 2] - 0.5) * building.width;
+    const out = METEOR_GLOBE_RADIUS + Math.max(0.015, radialHeight + debrisLift);
+    target[offset] = normal.x * out + tangent.x * side + bitangent.x * side2 + impactDirection.x * lateralFall + tangent.x * debrisSide;
+    target[offset + 1] = normal.y * out + bitangent.y * side2 + impactDirection.y * lateralFall + tangent.y * debrisSide;
+    target[offset + 2] = normal.z * out + tangent.z * side + bitangent.z * side2 + impactDirection.z * lateralFall + tangent.z * debrisSide;
+    return;
+  }
+
+  // Meteor trails approach their collision target, stop there, then become an
+  // outward impact flash. No phase places a particle inside the globe.
+  const meteorParticle = Math.floor(index / 10) * 3 + (slice - 7);
+  const meteorId = meteorParticle % METEOR_COUNT;
+  const trailCount = Math.max(1, Math.floor(count * 0.3 / METEOR_COUNT) - 1);
+  const trailT = Math.min(1, Math.floor(meteorParticle / METEOR_COUNT) / trailCount);
+  const impact = getMeteorImpact(meteorId);
+  const cycle = getMeteorCycle(meteorId, time);
+  const { bitangent, tangent } = getMeteorTangentFrame(impact.normal);
+  const impactX = impact.normal.x * impact.radius;
+  const impactY = impact.normal.y * impact.radius;
+  const impactZ = impact.normal.z * impact.radius;
+
+  if (cycle >= METEOR_IMPACT_TIME) {
+    const age = cycle - METEOR_IMPACT_TIME;
+    const burst = Math.min(age, 1.05);
+    const angle = seeds[offset] * TAU + meteorId;
+    const particleSpeed = 0.16 + seeds[offset + 1] * 0.72;
+    const spread = burst * particleSpeed;
+    const ringX = tangent.x * Math.cos(angle) + bitangent.x * Math.sin(angle);
+    const ringY = tangent.y * Math.cos(angle) + bitangent.y * Math.sin(angle);
+    const ringZ = tangent.z * Math.cos(angle) + bitangent.z * Math.sin(angle);
+    const lift = 0.025 + burst * (0.08 + seeds[offset + 2] * 0.28);
+    target[offset] = impactX + ringX * spread + impact.normal.x * lift;
+    target[offset + 1] = impactY + ringY * spread + impact.normal.y * lift;
+    target[offset + 2] = impactZ + ringZ * spread + impact.normal.z * lift;
+    return;
+  }
+
+  const remaining = (METEOR_IMPACT_TIME - cycle) * (1.25 + seeded(meteorId, 55) * 0.35);
+  const trailLength = 0.7 + seeded(meteorId, 56) * 0.45;
+  const along = remaining + trailT * trailLength;
+  const scatter = trailT * 0.045;
+  const scatterX = tangent.x * (seeds[offset] - 0.5) * scatter + bitangent.x * (seeds[offset + 1] - 0.5) * scatter;
+  const scatterY = tangent.y * (seeds[offset] - 0.5) * scatter + bitangent.y * (seeds[offset + 1] - 0.5) * scatter;
+  const scatterZ = tangent.z * (seeds[offset] - 0.5) * scatter + bitangent.z * (seeds[offset + 1] - 0.5) * scatter;
+  target[offset] = impactX - METEOR_DIRECTION.x * along + scatterX;
+  target[offset + 1] = impactY - METEOR_DIRECTION.y * along + scatterY;
+  target[offset + 2] = impactZ - METEOR_DIRECTION.z * along + scatterZ;
+}
+
+function getFlightCycleRoute(time) {
+  const cycle = time % 23;
+  let center;
+  let forward;
+  let bank = 0;
+  let gear = 0;
+  let trail = 0;
+
+  if (cycle < 1) {
+    // Hold briefly on the centerline before beginning the takeoff roll.
+    center = { x: -2.25, y: -0.84, z: 0 };
+    forward = { x: 1, y: 0, z: 0 };
+    gear = 1;
+    trail = 0.08 + cycle * 0.08;
+  } else if (cycle < 6) {
+    // Ground roll, rotation near flying speed, and a shallow straight-out climb.
+    const progress = (cycle - 1) / 5;
+    const rotation = clamp01((progress - 0.5) / 0.16);
+    const climb = clamp01((progress - 0.61) / 0.39);
+    const easedClimb = climb * climb * (3 - 2 * climb);
+    center = { x: -2.25 + progress * 6.4, y: -0.84 + easedClimb * 1.42, z: 0 };
+    forward = { x: 1, y: Math.sin(rotation * Math.PI) * 0.18 + climb * 0.08, z: 0 };
+    gear = 1 - clamp01((progress - 0.69) / 0.18);
+    trail = 0.12 + clamp01((progress - 0.38) / 0.35) * 0.28;
+  } else if (cycle < 8) {
+    // The departure has left the frame; leave the runway empty before final.
+    center = { x: 16, y: 8, z: 0 };
+    forward = { x: 1, y: 0, z: 0 };
+  } else if (cycle < 16) {
+    // A separate long final: approximately a five-degree visual glide path,
+    // slightly exaggerated from a typical three degrees so it reads in this scene.
+    const progress = (cycle - 8) / 8;
+    const flare = clamp01((progress - 0.84) / 0.16);
+    const approachDescent = progress * (1 - flare) + flare;
+    center = {
+      x: -4.35 + progress * 5.45,
+      y: -0.37 - approachDescent * 0.47,
+      z: 0,
+    };
+    forward = { x: 1, y: -0.087 * (1 - flare) + flare * 0.035, z: 0 };
+    gear = clamp01(progress / 0.16);
+    trail = 0.05;
+  } else if (cycle < 20.5) {
+    // Main-gear touchdown, nose lowering, and deceleration on the runway.
+    const progress = (cycle - 16) / 4.5;
+    const noseLowering = clamp01(progress / 0.22);
+    center = { x: 1.1 + progress * 1.28, y: -0.84, z: 0 };
+    forward = { x: 1, y: 0.035 * (1 - noseLowering), z: 0 };
+    gear = 1;
+    trail = 0.035 * (1 - progress);
+  } else if (cycle < 22) {
+    // Exit the runway on a curved high-speed taxiway.
+    const progress = (cycle - 20.5) / 1.5;
+    const turn = progress * Math.PI / 2;
+    center = {
+      x: 2.38 + Math.sin(turn) * 0.42,
+      y: -0.84,
+      z: Math.max(0, 0.42 - Math.cos(turn) * 0.42),
+    };
+    forward = { x: Math.cos(turn), y: 0, z: Math.sin(turn) };
+    bank = -Math.sin(progress * Math.PI) * 0.035;
+    gear = 1;
+  } else {
+    // Continue down the taxiway until the aircraft clears the frame.
+    const progress = cycle - 22;
+    center = { x: 2.8, y: -0.84, z: 0.42 + progress * 3.2 };
+    forward = { x: 0, y: 0, z: 1 };
+    gear = 1;
+  }
+
+  const forwardLength = Math.hypot(forward.x, forward.y, forward.z) || 1;
+  forward = { x: forward.x / forwardLength, y: forward.y / forwardLength, z: forward.z / forwardLength };
+  const rightLength = Math.hypot(forward.x, forward.z) || 1;
+  const right = { x: forward.z / rightLength, y: 0, z: -forward.x / rightLength };
+  let up = {
+    x: forward.y * right.z - forward.z * right.y,
+    y: forward.z * right.x - forward.x * right.z,
+    z: forward.x * right.y - forward.y * right.x,
+  };
+  const cosBank = Math.cos(bank);
+  const sinBank = Math.sin(bank);
+  const bankedRight = {
+    x: right.x * cosBank + up.x * sinBank,
+    y: right.y * cosBank + up.y * sinBank,
+    z: right.z * cosBank + up.z * sinBank,
+  };
+  up = {
+    x: up.x * cosBank - right.x * sinBank,
+    y: up.y * cosBank - right.y * sinBank,
+    z: up.z * cosBank - right.z * sinBank,
+  };
+  return { center, forward, gear, right: bankedRight, trail, up };
+}
+
+function writeFlightCyclePosition(target, offset, index, time, seeds, count) {
+  const section = index / count;
+
+  if (section < 0.2) {
+    // Runway edges, centerline, threshold bars, and approach lights.
+    const runwayPart = index % 5;
+    if (runwayPart < 2) {
+      target[offset] = (seeds[offset] - 0.5) * 4.7;
+      target[offset + 1] = -1.04 + (seeds[offset + 1] - 0.5) * 0.018;
+      target[offset + 2] = (runwayPart === 0 ? -0.34 : 0.34) + (seeds[offset + 2] - 0.5) * 0.025;
+    } else if (runwayPart === 2) {
+      const stripe = Math.floor(seeds[offset] * 13);
+      target[offset] = -2.15 + stripe * 0.36 + (seeds[offset + 1] - 0.5) * 0.17;
+      target[offset + 1] = -1.025;
+      target[offset + 2] = (seeds[offset + 2] - 0.5) * 0.035;
+    } else if (runwayPart === 3) {
+      const side = index % 2 === 0 ? -1 : 1;
+      target[offset] = -2.75 + seeds[offset] * 0.55;
+      target[offset + 1] = -1.01;
+      target[offset + 2] = side * (0.08 + seeds[offset + 1] * 0.28);
+    } else {
+      const light = Math.floor(seeds[offset] * 12);
+      target[offset] = -3.45 + light * 0.11;
+      target[offset + 1] = -1 + Math.sin(time * 2.4 + light) * 0.012;
+      target[offset + 2] = (seeds[offset + 1] - 0.5) * 0.025;
+    }
+    return;
+  }
+
+  if (section < 0.32) {
+    // Soft cloud volumes establish altitude and make the routes readable.
+    const cloudId = index % 9;
+    const cloudAngle = seeded(cloudId, 81) * TAU;
+    const cloudRadius = 1.25 + seeded(cloudId, 82) * 1.7;
+    const cloudX = Math.cos(cloudAngle) * cloudRadius;
+    const cloudY = -0.05 + seeded(cloudId, 83) * 1.55;
+    const cloudZ = Math.sin(cloudAngle) * cloudRadius;
+    const theta = seeds[offset] * TAU + time * 0.018;
+    const phi = Math.acos(seeds[offset + 1] * 2 - 1);
+    const radius = Math.cbrt(seeds[offset + 2]) * (0.16 + seeded(cloudId, 84) * 0.2);
+    target[offset] = cloudX + Math.sin(phi) * Math.cos(theta) * radius * 1.65;
+    target[offset + 1] = cloudY + Math.cos(phi) * radius * 0.48;
+    target[offset + 2] = cloudZ + Math.sin(phi) * Math.sin(theta) * radius;
+    return;
+  }
+
+  // One detailed aircraft uses the remaining particles for a clearly readable
+  // fuselage, wings, stabilizers, engines, landing gear, and short engine wake.
+  const aircraftParticle = index - Math.floor(count * 0.32);
+  const localIndex = Math.max(0, aircraftParticle);
+  const particlesPerAircraft = Math.max(1, Math.floor(count * 0.68));
+  const localSection = localIndex / particlesPerAircraft;
+  const route = getFlightCycleRoute(time);
+  let longitudinal;
+  let lateral;
+  let vertical;
+
+  if (localSection < 0.28) {
+    longitudinal = -0.28 + seeds[offset] * 0.66;
+    const nose = clamp01((0.38 - longitudinal) / 0.16);
+    const tail = 0.55 + clamp01((longitudinal + 0.28) / 0.12) * 0.45;
+    const radius = 0.018 + 0.045 * nose * tail;
+    const angle = seeds[offset + 1] * TAU;
+    lateral = Math.cos(angle) * radius;
+    vertical = Math.sin(angle) * radius;
+  } else if (localSection < 0.5) {
+    longitudinal = -0.08 + seeds[offset] * 0.18;
+    lateral = (seeds[offset + 1] - 0.5) * 0.72;
+    const taper = 1 - Math.abs(lateral) / 0.36;
+    longitudinal += (seeds[offset + 2] - 0.5) * 0.2 * taper;
+    vertical = (seeds[offset + 2] - 0.5) * 0.018;
+  } else if (localSection < 0.59) {
+    const verticalTail = localIndex % 2 === 0;
+    longitudinal = -0.24 + seeds[offset] * 0.11;
+    lateral = verticalTail ? (seeds[offset + 1] - 0.5) * 0.025 : (seeds[offset + 1] - 0.5) * 0.31;
+    vertical = verticalTail ? seeds[offset + 2] * 0.18 : (seeds[offset + 2] - 0.5) * 0.018;
+  } else if (localSection < 0.67) {
+    const engineSide = localIndex % 2 === 0 ? -1 : 1;
+    const angle = seeds[offset] * TAU;
+    longitudinal = -0.08 + (seeds[offset + 1] - 0.5) * 0.15;
+    lateral = engineSide * 0.18 + Math.cos(angle) * 0.026;
+    vertical = -0.035 + Math.sin(angle) * 0.026;
+  } else if (localSection < 0.77) {
+    const gearPart = localIndex % 3;
+    const wheelAngle = seeds[offset] * TAU;
+    const isNoseGear = gearPart === 0;
+    longitudinal = isNoseGear ? 0.24 : -0.08;
+    lateral = isNoseGear ? 0 : (gearPart === 1 ? -0.13 : 0.13);
+    const strut = seeds[offset + 1] * 0.13 * route.gear;
+    vertical = -0.04 - strut;
+    if (seeds[offset + 2] > 0.72) {
+      lateral += Math.cos(wheelAngle) * 0.018 * route.gear;
+      vertical -= Math.sin(wheelAngle) * 0.018 * route.gear;
+    }
+  } else {
+    const trail = (localSection - 0.77) / 0.23;
+    const engineSide = localIndex % 2 === 0 ? -1 : 1;
+    longitudinal = -0.2 - trail * 0.7 * route.trail;
+    lateral = engineSide * 0.18 + (seeds[offset] - 0.5) * trail * 0.055 * route.trail;
+    vertical = -0.025 + Math.sin(time * 2.1 + localIndex) * trail * 0.02 * route.trail;
+  }
+
+  target[offset] = route.center.x + route.forward.x * longitudinal + route.right.x * lateral + route.up.x * vertical;
+  target[offset + 1] = route.center.y + route.forward.y * longitudinal + route.right.y * lateral + route.up.y * vertical;
+  target[offset + 2] = route.center.z + route.forward.z * longitudinal + route.right.z * lateral + route.up.z * vertical;
+}
+
 function writeEntangledPosition(target, offset, index, time, _seeds) {
   const pairIndex = Math.floor(index / 2);
   const side = index % 2 === 0 ? -1 : 1;
@@ -879,6 +1273,8 @@ function writeParticlePositions(mode, positions, seeds, density, time) {
     else if (mode === "stellar3d") writeStellarNeighborhoodPosition(positions, offset, index, time, seeds, density);
     else if (mode === "spacestation3d") writeSpaceStationPosition(positions, offset, index, time, seeds, density);
     else if (mode === "starshiplaunch3d") writeStarshipLaunchPosition(positions, offset, index, time, seeds, density);
+    else if (mode === "meteor3d") writeMeteorShowerPosition(positions, offset, index, time, seeds, density);
+    else if (mode === "flightcycle3d") writeFlightCyclePosition(positions, offset, index, time, seeds, density);
     else if (mode === "entangled") writeEntangledPosition(positions, offset, index, time, seeds);
     else if (mode === "wavelattice") writeWaveLatticePosition(positions, offset, index, time, density);
     else if (mode === "magnetic") writeMagneticPosition(positions, offset, index, time, seeds);

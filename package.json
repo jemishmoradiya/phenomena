@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "A gallery of 84 generative particle and physics simulations on canvas, plus a separate 34-scene Three.js 3D particle lab.",
+  "description": "A gallery of 84 generative particle and physics simulations on canvas, plus a separate 36-scene Three.js 3D particle lab.",
   "author": "jemishmoradiya",
   "license": "UNLICENSED",
   "repository": {
